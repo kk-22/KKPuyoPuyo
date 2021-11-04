@@ -1,14 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:kk_puyopuyo/view_model/puyo_view_model.dart';
+import 'package:provider/provider.dart';
 
 class TimerViewModel {
   late PuyoViewModel _puyoModel;
   Timer? _timer;
 
-  void init(PuyoViewModel puyoModel) {
-    _puyoModel = puyoModel;
-    startIfNeeded();
+  void init(BuildContext context) {
+    _puyoModel = context.read<PuyoViewModel>();
   }
 
   bool isStarting() => _timer != null;

@@ -23,7 +23,8 @@ class PuyoViewModel {
   final List<ControlledPuyo> _controlledPuyos = [];
   late TimerViewModel _timerModel;
 
-  PuyoViewModel() {
+  void init(BuildContext context) {
+    _timerModel = context.read<TimerViewModel>();
     _clear();
     _movePuyo(false, _controlledPuyos.first);
   }
@@ -43,10 +44,18 @@ class PuyoViewModel {
   }
 
   void _clear() {
+    for (var column = 0; column < numberOfColumn; column++) {
+      for (var row = numberOfRow - 1; 0 <= row; row--) {
+        puyoOf(column, row).type = PuyoType.none;
+      }
+    }
     _controlledPuyos.clear();
     for (var i = 0; i < numberOfNext + 1; i++) {
       _controlledPuyos.add(ControlledPuyo());
     }
+    _movePuyo(false, _controlledPuyos.first);
+
+    _timerModel.reset();
   }
 
   void timeHasPassed() {
@@ -110,6 +119,8 @@ class PuyoViewModel {
       } else {
         _timerModel.startIfNeeded();
       }
+    } else if (key == LogicalKeyboardKey.keyC) {
+      _clear();
     } else {
       return;
     }
@@ -157,9 +168,5 @@ class PuyoViewModel {
     _controlledPuyos.removeAt(0);
     _controlledPuyos.add(ControlledPuyo());
     _movePuyo(false, _controlledPuyos.first);
-  }
-
-  void init(BuildContext context) {
-    _timerModel = context.read<TimerViewModel>();
   }
 }

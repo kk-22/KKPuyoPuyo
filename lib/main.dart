@@ -29,9 +29,8 @@ class MyApp extends StatelessWidget {
           final focusNode = FocusNode();
           focusNode.requestFocus();
           final puyoModel = context.read<PuyoViewModel>();
-          final timerModel = context.read<TimerViewModel>();
           puyoModel.init(context);
-          timerModel.init(puyoModel);
+          context.read<TimerViewModel>().init(context);
           return RawKeyboardListener(
             focusNode: focusNode,
             onKey: (event) {
