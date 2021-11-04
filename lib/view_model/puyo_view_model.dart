@@ -134,7 +134,7 @@ class PuyoViewModel {
           }
         } else {
           // 1段持ち上げる
-          final y = current.mainPoint.y + 1;
+          final y = current.mainPoint.y - 1;
           next = ControlledPuyo.moved(current,
               nextPoint: Point(current.mainPoint.x, y), nextPosition: turned);
         }
