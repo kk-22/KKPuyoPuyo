@@ -1,16 +1,24 @@
-# kk_puyopuyo
+# KKPuyoPuyo
 
-puyopuyo game
 
-## Getting Started
+腕試しで開発したパズルゲーム「ぷよぷよ」。かかった工数は8時間。
 
-This project is a starting point for a Flutter application.
+<img src="https://user-images.githubusercontent.com/85630292/140303148-da38a237-b329-4893-943d-960247f66466.png" width=20%>
 
-A few resources to get you started if this is your first Flutter project:
+# 開発目的
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+* ブラウザ向けFlutter開発の学習
+* プログラミングスキルの確認
+* 趣味
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# 仕様技術
+* Flutter
+  * Provider
+
+# プレビュー
+
+<video src="https://user-images.githubusercontent.com/85630292/140302378-851676ad-c3ed-4e02-b7f6-ae1925ad531d.mp4" width=40%>
+
+
+
+
