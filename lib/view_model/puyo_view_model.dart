@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kk_puyopuyo/model/controlled_puyo.dart';
 import 'package:kk_puyopuyo/model/puyo.dart';
+import 'package:kk_puyopuyo/view_model/status_view_model.dart';
 import 'package:kk_puyopuyo/view_model/timer_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -26,9 +27,11 @@ class PuyoViewModel {
   // 第1要素は現在操作中のぷよ。第2要素以降は画面右上に表示する
   final List<ControlledPuyo> _controlledPuyos = [];
   late TimerViewModel _timerModel;
+  late StatusViewModel _statusModel;
 
   void init(BuildContext context) {
     _timerModel = context.read<TimerViewModel>();
+    _statusModel = context.read<StatusViewModel>();
     _clear();
   }
 
@@ -63,6 +66,7 @@ class PuyoViewModel {
     _updateNextPuyo();
 
     _timerModel.reset();
+    _statusModel.status = GameStatus.play;
   }
 
   void timeHasPassed() {
@@ -82,14 +86,20 @@ class PuyoViewModel {
   void controlPuyo(LogicalKeyboardKey key) {
     if (key == LogicalKeyboardKey.space) {
       // タイマー操作
-      if (_timerModel.isStarting()) {
+      if (_statusModel.status == GameStatus.play) {
+        _statusModel.status = GameStatus.pause;
         _timerModel.stopTimerIfNeeded();
-      } else {
+      } else if (_statusModel.status == GameStatus.pause) {
+        _statusModel.status = GameStatus.play;
         _timerModel.startIfNeeded();
       }
       return;
+    } else if (key == LogicalKeyboardKey.keyC &&
+        _statusModel.status != GameStatus.chain) {
+      _clear();
+      return;
     }
-    if (!_timerModel.isStarting()) return;
+    if (_statusModel.status != GameStatus.play) return;
 
     final current = _controlledPuyos.first;
     if (key == LogicalKeyboardKey.keyS) {
@@ -130,8 +140,6 @@ class PuyoViewModel {
         }
       }
       _movePuyo(next);
-    } else if (key == LogicalKeyboardKey.keyC) {
-      _clear();
     }
   }
 
@@ -189,6 +197,10 @@ class PuyoViewModel {
       // 次のぷよを作成
       _controlledPuyos.removeAt(0);
       _controlledPuyos.add(ControlledPuyo());
+      if (puyoOfPoint(_controlledPuyos.first.mainPoint).type != PuyoType.none) {
+        _statusModel.status = GameStatus.lose;
+        return;
+      }
       _updateNextPuyo();
       _timerModel.startIfNeeded();
     }
@@ -210,8 +222,12 @@ class PuyoViewModel {
         }
       }
     }
-    if (deletePoints.isEmpty) return false;
+    if (deletePoints.isEmpty) {
+      _statusModel.status = GameStatus.play;
+      return false;
+    }
 
+    _statusModel.status = GameStatus.chain;
     await Future.delayed(const Duration(milliseconds: 500));
     for (var point in deletePoints) {
       puyoOfPoint(point).type = PuyoType.none;

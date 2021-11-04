@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kk_puyopuyo/view/square_view.dart';
 import 'package:kk_puyopuyo/view_model/puyo_view_model.dart';
+import 'package:kk_puyopuyo/view_model/status_view_model.dart';
 import 'package:provider/provider.dart';
 
 class MainField extends StatelessWidget {
@@ -27,20 +28,30 @@ class MainField extends StatelessWidget {
             }),
           ),
         ),
-        Row(
-          children: List.generate(PuyoViewModel.numberOfNext, (nextIndex) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 10, left: 10),
-              child: Column(
-                  children: List.generate(2, (index) {
-                return ChangeNotifierProvider.value(
-                  value: puyoModel.nextPuyo(nextIndex * 2 + index),
-                  child: const SizedBox(
-                      width: 50, height: 50, child: SquareView()),
+        Column(
+          children: [
+            Row(
+              children: List.generate(PuyoViewModel.numberOfNext, (nextIndex) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 10, left: 10),
+                  child: Column(
+                      children: List.generate(2, (index) {
+                    return ChangeNotifierProvider.value(
+                      value: puyoModel.nextPuyo(nextIndex * 2 + index),
+                      child: const SizedBox(
+                          width: 50, height: 50, child: SquareView()),
+                    );
+                  })),
                 );
-              })),
-            );
-          }),
+              }),
+            ),
+            Consumer<StatusViewModel>(builder: (context, statusModel, child) {
+              return Text(
+                statusModel.status.title(),
+                style: const TextStyle(color: Colors.cyan, fontSize: 30),
+              );
+            }),
+          ],
         ),
       ],
     );
