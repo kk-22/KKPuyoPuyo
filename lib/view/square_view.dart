@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kk_puyopuyo/model/puyo.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 
 class SquareView extends StatelessWidget {
   const SquareView({Key? key}) : super(key: key);

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/src/services/keyboard_key.dart';
 import 'package:kk_puyopuyo/model/controlled_puyo.dart';
 import 'package:kk_puyopuyo/model/puyo.dart';
 
