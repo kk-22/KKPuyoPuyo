@@ -68,15 +68,26 @@ class PuyoViewModel {
       _movePuyo(true, next);
       return;
     }
+    _timerModel.stopTimerIfNeeded();
     _freeFallPuyo();
   }
 
   void controlPuyo(LogicalKeyboardKey key) {
+    if (key == LogicalKeyboardKey.space) {
+      // タイマー操作
+      if (_timerModel.isStarting()) {
+        _timerModel.stopTimerIfNeeded();
+      } else {
+        _timerModel.startIfNeeded();
+      }
+      return;
+    }
+    if (!_timerModel.isStarting()) return;
+
     final current = _controlledPuyos.first;
     if (key == LogicalKeyboardKey.keyS) {
-      _timerModel.reset();
+      _timerModel.stopTimerIfNeeded();
       _freeFallPuyo();
-      return;
     } else if (key == LogicalKeyboardKey.keyA ||
         key == LogicalKeyboardKey.keyD) {
       final x = current.mainPoint.x + (key == LogicalKeyboardKey.keyA ? -1 : 1);
@@ -112,24 +123,14 @@ class PuyoViewModel {
         }
       }
       _movePuyo(true, next);
-    } else if (key == LogicalKeyboardKey.space) {
-      // タイマー操作
-      if (_timerModel.isStarting()) {
-        _timerModel.stopTimerIfNeeded();
-      } else {
-        _timerModel.startIfNeeded();
-      }
     } else if (key == LogicalKeyboardKey.keyC) {
       _clear();
-    } else {
-      return;
     }
   }
 
   bool _canMovePuyoTo(ControlledPuyo current, Point<int> point) {
     if (current.mainPoint == point || current.subPoint == point) return true;
-    if (point.x < 0 || numberOfColumn <= point.x) return false;
-    if (point.y < 0 || numberOfRow <= point.y) return false;
+    if (!_isIndexExist(point.x, point.y)) return false;
     return puyoOfPoint(point).type == PuyoType.none;
   }
 
@@ -146,7 +147,7 @@ class PuyoViewModel {
   }
 
   // 操作していたぷよを固定する
-  void _freeFallPuyo() {
+  Future<void> _freeFallPuyo() async {
     for (var column = 0; column < numberOfColumn; column++) {
       for (var row = numberOfRow - 1; 0 <= row; row--) {
         final currentPuyo = puyoOf(column, row);
@@ -164,9 +165,73 @@ class PuyoViewModel {
       }
     }
 
-    // 次のぷよを作成
-    _controlledPuyos.removeAt(0);
-    _controlledPuyos.add(ControlledPuyo());
-    _movePuyo(false, _controlledPuyos.first);
+    if (await _deleteConnectedPuyos()) {
+      _freeFallPuyo();
+    } else {
+      // 次のぷよを作成
+      _controlledPuyos.removeAt(0);
+      _controlledPuyos.add(ControlledPuyo());
+      _movePuyo(false, _controlledPuyos.first);
+      _timerModel.startIfNeeded();
+    }
+  }
+
+  // 1つでも削除したら true を返す
+  Future<bool> _deleteConnectedPuyos() async {
+    final resultTable = List<List<bool>>.generate(
+      numberOfColumn,
+      (_) => List<bool>.filled(numberOfRow, false),
+    );
+    final List<Point<int>> deletePoints = [];
+    for (var column = 0; column < numberOfColumn; column++) {
+      for (var row = numberOfRow - 1; 0 <= row; row--) {
+        List<Point<int>> checkedTable = [];
+        _searchConnectedPuyo(column, row, null, checkedTable, resultTable);
+        if (4 <= checkedTable.length) {
+          deletePoints.addAll(checkedTable);
+        }
+      }
+    }
+    if (deletePoints.isEmpty) return false;
+
+    await Future.delayed(const Duration(milliseconds: 500));
+    for (var point in deletePoints) {
+      puyoOfPoint(point).type = PuyoType.none;
+    }
+    return true;
+  }
+
+  void _searchConnectedPuyo(
+      int column,
+      int row,
+      PuyoType? prevType,
+      List<Point<int>> checkedTable,
+      List<List<bool>> resultTable) {
+    if (!_isIndexExist(column, row)) return;
+    if (resultTable[column][row]) return;
+
+    final puyo = puyoOf(column, row);
+    if (prevType != null) {
+      if (prevType != puyo.type) return;
+    } else {
+      if (puyo.type == PuyoType.none) return;
+    }
+    // 逆流防止のため先にチェック済みフラグを立てる
+    resultTable[column][row] = true;
+    checkedTable.add(Point(column, row));
+    _searchConnectedPuyo(
+        column + 1, row, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(
+        column - 1, row, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(
+        column, row + 1, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(
+        column, row - 1, puyo.type, checkedTable, resultTable);
+  }
+
+  bool _isIndexExist(int column, int row) {
+    if (column < 0 || numberOfColumn <= column) return false;
+    if (row < 0 || numberOfRow <= row) return false;
+    return true;
   }
 }
