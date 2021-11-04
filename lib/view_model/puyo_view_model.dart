@@ -14,19 +14,22 @@ class PuyoViewModel {
   static const numberOfNext = 2; // 次ぷよの表示数
 
   // 左上が(0,0)、第1添え字が列
-  final List<List<Puyo>> puyoTable = List<List<Puyo>>.generate(
+  final _puyoTable = List<List<Puyo>>.generate(
     numberOfColumn,
     (_) => List<Puyo>.generate(numberOfRow, (_) => Puyo()),
   );
+  final _nextPuyos = List<Puyo>.generate(
+    numberOfNext * 2,
+    (_) => Puyo(),
+  );
 
-  // 第1要素は現在操作中のぷよ。
+  // 第1要素は現在操作中のぷよ。第2要素以降は画面右上に表示する
   final List<ControlledPuyo> _controlledPuyos = [];
   late TimerViewModel _timerModel;
 
   void init(BuildContext context) {
     _timerModel = context.read<TimerViewModel>();
     _clear();
-    _movePuyo(false, _controlledPuyos.first);
   }
 
   Puyo puyoOfIndex(int index) {
@@ -40,7 +43,11 @@ class PuyoViewModel {
   }
 
   Puyo puyoOf(int column, int row) {
-    return puyoTable[column][row];
+    return _puyoTable[column][row];
+  }
+
+  Puyo nextPuyo(int index) {
+    return _nextPuyos[index];
   }
 
   void _clear() {
@@ -53,7 +60,7 @@ class PuyoViewModel {
     for (var i = 0; i < numberOfNext + 1; i++) {
       _controlledPuyos.add(ControlledPuyo());
     }
-    _movePuyo(false, _controlledPuyos.first);
+    _updateNextPuyo();
 
     _timerModel.reset();
   }
@@ -65,7 +72,7 @@ class PuyoViewModel {
     if (_canMovePuyoTo(current, next.mainPoint) &&
         _canMovePuyoTo(current, next.subPoint)) {
       // 一段下げる
-      _movePuyo(true, next);
+      _movePuyo(next);
       return;
     }
     _timerModel.stopTimerIfNeeded();
@@ -95,7 +102,7 @@ class PuyoViewModel {
           nextPoint: Point(x, current.mainPoint.y));
       if (_canMovePuyoTo(current, next.mainPoint) &&
           _canMovePuyoTo(current, next.subPoint)) {
-        _movePuyo(true, next);
+        _movePuyo(next);
       }
     } else if (key == LogicalKeyboardKey.keyE ||
         key == LogicalKeyboardKey.keyQ) {
@@ -122,7 +129,7 @@ class PuyoViewModel {
               nextPoint: Point(current.mainPoint.x, y), nextPosition: turned);
         }
       }
-      _movePuyo(true, next);
+      _movePuyo(next);
     } else if (key == LogicalKeyboardKey.keyC) {
       _clear();
     }
@@ -134,16 +141,27 @@ class PuyoViewModel {
     return puyoOfPoint(point).type == PuyoType.none;
   }
 
-  void _movePuyo(bool isReplace, ControlledPuyo next) {
-    if (isReplace) {
-      final controlled = _controlledPuyos.first;
-      puyoOfPoint(controlled.mainPoint).type = PuyoType.none;
-      puyoOfPoint(controlled.subPoint).type = PuyoType.none;
-      _controlledPuyos.removeAt(0);
-      _controlledPuyos.insert(0, next);
-    }
+  void _movePuyo(ControlledPuyo next) {
+    final controlled = _controlledPuyos.first;
+    puyoOfPoint(controlled.mainPoint).type = PuyoType.none;
+    puyoOfPoint(controlled.subPoint).type = PuyoType.none;
+    _controlledPuyos.removeAt(0);
+    _controlledPuyos.insert(0, next);
+
     puyoOfPoint(next.mainPoint).type = next.mainType;
     puyoOfPoint(next.subPoint).type = next.subType;
+  }
+
+  void _updateNextPuyo() {
+    final control = _controlledPuyos[0];
+    puyoOfPoint(control.mainPoint).type = control.mainType;
+    puyoOfPoint(control.subPoint).type = control.subType;
+
+    for (var i = 0; i < numberOfNext; i++) {
+      final control = _controlledPuyos[i + 1];
+      nextPuyo(i * 2).type = control.subType;
+      nextPuyo(i * 2 + 1).type = control.mainType;
+    }
   }
 
   // 操作していたぷよを固定する
@@ -171,7 +189,7 @@ class PuyoViewModel {
       // 次のぷよを作成
       _controlledPuyos.removeAt(0);
       _controlledPuyos.add(ControlledPuyo());
-      _movePuyo(false, _controlledPuyos.first);
+      _updateNextPuyo();
       _timerModel.startIfNeeded();
     }
   }
@@ -201,12 +219,8 @@ class PuyoViewModel {
     return true;
   }
 
-  void _searchConnectedPuyo(
-      int column,
-      int row,
-      PuyoType? prevType,
-      List<Point<int>> checkedTable,
-      List<List<bool>> resultTable) {
+  void _searchConnectedPuyo(int column, int row, PuyoType? prevType,
+      List<Point<int>> checkedTable, List<List<bool>> resultTable) {
     if (!_isIndexExist(column, row)) return;
     if (resultTable[column][row]) return;
 
@@ -219,14 +233,10 @@ class PuyoViewModel {
     // 逆流防止のため先にチェック済みフラグを立てる
     resultTable[column][row] = true;
     checkedTable.add(Point(column, row));
-    _searchConnectedPuyo(
-        column + 1, row, puyo.type, checkedTable, resultTable);
-    _searchConnectedPuyo(
-        column - 1, row, puyo.type, checkedTable, resultTable);
-    _searchConnectedPuyo(
-        column, row + 1, puyo.type, checkedTable, resultTable);
-    _searchConnectedPuyo(
-        column, row - 1, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(column + 1, row, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(column - 1, row, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(column, row + 1, puyo.type, checkedTable, resultTable);
+    _searchConnectedPuyo(column, row - 1, puyo.type, checkedTable, resultTable);
   }
 
   bool _isIndexExist(int column, int row) {

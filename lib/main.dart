@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
                 puyoModel.controlPuyo(event.logicalKey);
               }
             },
-            child: const MainField(),
+            child: const Center(child: MainField()),
           );
         },
       ),

@@ -9,22 +9,40 @@ class MainField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final puyoModel = context.read<PuyoViewModel>();
-    return Center(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.height *
-            PuyoViewModel.numberOfColumn /
-            PuyoViewModel.numberOfRow,
-        child: GridView.count(
-          crossAxisCount: PuyoViewModel.numberOfColumn,
-          childAspectRatio: 1.0,
-          children: List.generate(PuyoViewModel.maxSquare, (index) {
-            return ChangeNotifierProvider.value(
-              value: puyoModel.puyoOfIndex(index),
-              child: const SquareView(),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.height *
+              PuyoViewModel.numberOfColumn /
+              PuyoViewModel.numberOfRow,
+          child: GridView.count(
+            crossAxisCount: PuyoViewModel.numberOfColumn,
+            childAspectRatio: 1.0,
+            children: List.generate(PuyoViewModel.maxSquare, (index) {
+              return ChangeNotifierProvider.value(
+                value: puyoModel.puyoOfIndex(index),
+                child: const SquareView(),
+              );
+            }),
+          ),
+        ),
+        Row(
+          children: List.generate(PuyoViewModel.numberOfNext, (nextIndex) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 10, left: 10),
+              child: Column(
+                  children: List.generate(2, (index) {
+                return ChangeNotifierProvider.value(
+                  value: puyoModel.nextPuyo(nextIndex * 2 + index),
+                  child: const SizedBox(
+                      width: 50, height: 50, child: SquareView()),
+                );
+              })),
             );
           }),
         ),
-      ),
+      ],
     );
   }
 }
