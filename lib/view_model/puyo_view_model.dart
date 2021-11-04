@@ -48,27 +48,46 @@ class PuyoViewModel {
 
   void controlPuyo(LogicalKeyboardKey key) {
     final current = _controlledPuyos.first;
-    final ControlledPuyo next;
     if (key == LogicalKeyboardKey.keyS) {
       _freeFallPuyo();
       return;
-    } else if (key == LogicalKeyboardKey.keyA) {
-      next = ControlledPuyo.moved(current,
-          nextPoint: Point(current.mainPoint.x - 1, current.mainPoint.y));
-    } else if (key == LogicalKeyboardKey.keyD) {
-      next = ControlledPuyo.moved(current,
-          nextPoint: Point(current.mainPoint.x + 1, current.mainPoint.y));
-    } else if (key == LogicalKeyboardKey.keyE) {
-      next = ControlledPuyo.moved(current, turnToRight: true);
-    } else if (key == LogicalKeyboardKey.keyQ) {
-      next = ControlledPuyo.moved(current, turnToRight: false);
+    } else if (key == LogicalKeyboardKey.keyA ||
+        key == LogicalKeyboardKey.keyD) {
+      final x = current.mainPoint.x + (key == LogicalKeyboardKey.keyA ? -1 : 1);
+      final next = ControlledPuyo.moved(current,
+          nextPoint: Point(x, current.mainPoint.y));
+      if (_canMovePuyoTo(current, next.mainPoint) &&
+          _canMovePuyoTo(current, next.subPoint)) {
+        _movePuyo(true, next);
+      }
+    } else if (key == LogicalKeyboardKey.keyE ||
+        key == LogicalKeyboardKey.keyQ) {
+      final turnToRight = key == LogicalKeyboardKey.keyE;
+      final turned = current.subPosition.turned(turnToRight);
+      var next = ControlledPuyo.moved(current, nextPosition: turned);
+      if (!_canMovePuyoTo(current, next.subPoint)) {
+        if (current.subPosition.isVertical()) {
+          // X軸をずらして回転
+          final x = current.mainPoint.x +
+              (current.subPosition.isPushedToRight(turnToRight) ? 1 : -1);
+          next = ControlledPuyo.moved(current,
+              nextPoint: Point(x, current.mainPoint.y), nextPosition: turned);
+          if (!_canMovePuyoTo(current, next.mainPoint)) {
+            // 左右の入れ替えのみ行う
+            final upside = current.subPosition.upsideDown();
+            next = ControlledPuyo.moved(current,
+                nextPoint: current.subPoint, nextPosition: upside);
+          }
+        } else {
+          // 1段持ち上げる
+          final y = current.mainPoint.y + 1;
+          next = ControlledPuyo.moved(current,
+              nextPoint: Point(current.mainPoint.x, y), nextPosition: turned);
+        }
+      }
+      _movePuyo(true, next);
     } else {
       return;
-    }
-
-    if (_canMovePuyoTo(current, next.mainPoint) &&
-        _canMovePuyoTo(current, next.subPoint)) {
-      _movePuyo(true, next);
     }
   }
 

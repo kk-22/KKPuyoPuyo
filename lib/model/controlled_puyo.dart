@@ -18,14 +18,14 @@ class ControlledPuyo {
   }
 
   ControlledPuyo.moved(ControlledPuyo old,
-      {Point<int>? nextPoint, bool? turnToRight}) {
+      {Point<int>? nextPoint, SubPosition? nextPosition}) {
     _mainType = old.mainType;
     _subType = old.subType;
     _mainPoint = nextPoint ?? old._mainPoint;
-    if (turnToRight == null) {
+    if (nextPosition == null) {
       _subPosition = old._subPosition;
     } else {
-      _subPosition = old._subPosition.turned(turnToRight);
+      _subPosition = nextPosition;
     }
   }
 
@@ -37,6 +37,8 @@ class ControlledPuyo {
   PuyoType get mainType => _mainType;
 
   PuyoType get subType => _subType;
+
+  SubPosition get subPosition => _subPosition;
 
   get mainPoint => _mainPoint;
 
@@ -62,11 +64,30 @@ enum SubPosition {
 }
 
 extension SubPositionEx on SubPosition {
+  bool isVertical() => this == SubPosition.top || this == SubPosition.bottom;
+
+  // 上下逆転後の位置を返す
+  SubPosition upsideDown() =>
+      this == SubPosition.top ? SubPosition.bottom : SubPosition.top;
+
+  // 左右回転後の位置を返す
   SubPosition turned(bool turnToRight) {
     var nextIndex = index + (turnToRight ? 1 : -1);
     final maxIndex = SubPosition.values.length - 1;
     if (nextIndex < 0) nextIndex = maxIndex;
     if (maxIndex < nextIndex) nextIndex = 0;
     return SubPosition.values[nextIndex];
+  }
+
+  // 回転時に壁にぶつかることで右へ押し出されるなら true
+  bool isPushedToRight(bool turnToRight) {
+    switch (this) {
+      case SubPosition.top:
+        return !turnToRight;
+      case SubPosition.bottom:
+        return turnToRight;
+      default:
+        return false;
+    }
   }
 }
