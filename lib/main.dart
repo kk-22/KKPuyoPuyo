@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kk_puyopuyo/view/main_field.dart';
 import 'package:kk_puyopuyo/view_model/puyo_view_model.dart';
+import 'package:kk_puyopuyo/view_model/timer_view_model.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -19,12 +20,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Provider(
-        create: (_) => PuyoViewModel(),
+      home: MultiProvider(
+        providers: [
+          Provider<PuyoViewModel>(create: (_) => PuyoViewModel()),
+          Provider<TimerViewModel>(create: (_) => TimerViewModel()),
+        ],
         builder: (context, child) {
           final focusNode = FocusNode();
           focusNode.requestFocus();
           final puyoModel = context.read<PuyoViewModel>();
+          final timerModel = context.read<TimerViewModel>();
+          puyoModel.init(context);
+          timerModel.init(puyoModel);
           return RawKeyboardListener(
             focusNode: focusNode,
             onKey: (event) {

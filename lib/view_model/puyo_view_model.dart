@@ -1,8 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kk_puyopuyo/model/controlled_puyo.dart';
 import 'package:kk_puyopuyo/model/puyo.dart';
+import 'package:kk_puyopuyo/view_model/timer_view_model.dart';
+import 'package:provider/provider.dart';
 
 class PuyoViewModel {
   static const numberOfRow = 12;
@@ -18,6 +21,7 @@ class PuyoViewModel {
 
   // 第1要素は現在操作中のぷよ。
   final List<ControlledPuyo> _controlledPuyos = [];
+  late TimerViewModel _timerModel;
 
   PuyoViewModel() {
     _clear();
@@ -45,9 +49,23 @@ class PuyoViewModel {
     }
   }
 
+  void timeHasPassed() {
+    final current = _controlledPuyos.first;
+    final next = ControlledPuyo.moved(current,
+        nextPoint: Point(current.mainPoint.x, current.mainPoint.y + 1));
+    if (_canMovePuyoTo(current, next.mainPoint) &&
+        _canMovePuyoTo(current, next.subPoint)) {
+      // 一段下げる
+      _movePuyo(true, next);
+      return;
+    }
+    _freeFallPuyo();
+  }
+
   void controlPuyo(LogicalKeyboardKey key) {
     final current = _controlledPuyos.first;
     if (key == LogicalKeyboardKey.keyS) {
+      _timerModel.reset();
       _freeFallPuyo();
       return;
     } else if (key == LogicalKeyboardKey.keyA ||
@@ -85,6 +103,13 @@ class PuyoViewModel {
         }
       }
       _movePuyo(true, next);
+    } else if (key == LogicalKeyboardKey.space) {
+      // タイマー操作
+      if (_timerModel.isStarting()) {
+        _timerModel.stopTimerIfNeeded();
+      } else {
+        _timerModel.startIfNeeded();
+      }
     } else {
       return;
     }
@@ -132,5 +157,9 @@ class PuyoViewModel {
     _controlledPuyos.removeAt(0);
     _controlledPuyos.add(ControlledPuyo());
     _movePuyo(false, _controlledPuyos.first);
+  }
+
+  void init(BuildContext context) {
+    _timerModel = context.read<TimerViewModel>();
   }
 }
