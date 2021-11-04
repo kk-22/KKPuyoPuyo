@@ -49,15 +49,19 @@ class PuyoViewModel {
   void controlPuyo(LogicalKeyboardKey key) {
     final current = _controlledPuyos.first;
     final ControlledPuyo next;
-    if (key == LogicalKeyboardKey.keyA) {
-      next = ControlledPuyo.moved(
-          current, Point(current.mainPoint.x - 1, current.mainPoint.y));
-    } else if (key == LogicalKeyboardKey.keyD) {
-      next = ControlledPuyo.moved(
-          current, Point(current.mainPoint.x + 1, current.mainPoint.y));
-    } else if (key == LogicalKeyboardKey.keyS) {
+    if (key == LogicalKeyboardKey.keyS) {
       _freeFallPuyo();
       return;
+    } else if (key == LogicalKeyboardKey.keyA) {
+      next = ControlledPuyo.moved(current,
+          nextPoint: Point(current.mainPoint.x - 1, current.mainPoint.y));
+    } else if (key == LogicalKeyboardKey.keyD) {
+      next = ControlledPuyo.moved(current,
+          nextPoint: Point(current.mainPoint.x + 1, current.mainPoint.y));
+    } else if (key == LogicalKeyboardKey.keyE) {
+      next = ControlledPuyo.moved(current, turnToRight: true);
+    } else if (key == LogicalKeyboardKey.keyQ) {
+      next = ControlledPuyo.moved(current, turnToRight: false);
     } else {
       return;
     }

@@ -18,11 +18,15 @@ class ControlledPuyo {
   }
 
   ControlledPuyo.moved(ControlledPuyo old,
-      [Point<int>? nextPoint, SubPosition? nextPosition]) {
+      {Point<int>? nextPoint, bool? turnToRight}) {
     _mainType = old.mainType;
     _subType = old.subType;
     _mainPoint = nextPoint ?? old._mainPoint;
-    _subPosition = nextPosition ?? old._subPosition;
+    if (turnToRight == null) {
+      _subPosition = old._subPosition;
+    } else {
+      _subPosition = old._subPosition.turned(turnToRight);
+    }
   }
 
   PuyoType randomType() {
@@ -55,4 +59,14 @@ enum SubPosition {
   right,
   bottom,
   left,
+}
+
+extension SubPositionEx on SubPosition {
+  SubPosition turned(bool turnToRight) {
+    var nextIndex = index + (turnToRight ? 1 : -1);
+    final maxIndex = SubPosition.values.length - 1;
+    if (nextIndex < 0) nextIndex = maxIndex;
+    if (maxIndex < nextIndex) nextIndex = 0;
+    return SubPosition.values[nextIndex];
+  }
 }
