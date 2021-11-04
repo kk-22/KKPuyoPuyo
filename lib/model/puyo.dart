@@ -27,9 +27,9 @@ class Puyo with ChangeNotifier {
 }
 
 enum PuyoType {
-  none,
   red,
   green,
   blue,
   yellow,
+  none,
 }

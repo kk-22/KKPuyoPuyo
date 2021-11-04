@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kk_puyopuyo/view/main_field.dart';
 import 'package:kk_puyopuyo/view_model/puyo_view_model.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,20 @@ class MyApp extends StatelessWidget {
       ),
       home: Provider(
         create: (_) => PuyoViewModel(),
-        child: const MainField(),
+        builder: (context, child) {
+          final focusNode = FocusNode();
+          focusNode.requestFocus();
+          final puyoModel = context.read<PuyoViewModel>();
+          return RawKeyboardListener(
+            focusNode: focusNode,
+            onKey: (event) {
+              if (event is RawKeyDownEvent) {
+                puyoModel.controlMovingPuyo(event.logicalKey);
+              }
+            },
+            child: const MainField(),
+          );
+        },
       ),
     );
   }

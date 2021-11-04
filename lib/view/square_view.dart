@@ -8,7 +8,7 @@ class SquareView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final puyo = context.read<Puyo>();
+    final puyo = context.watch<Puyo>();
     return Container(
       decoration: BoxDecoration(
         color: puyo.squareColor,
