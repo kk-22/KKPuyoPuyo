@@ -10,15 +10,22 @@ class MainField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final puyoModel = context.read<PuyoViewModel>();
-    return GridView.count(
-      crossAxisCount: PuyoViewModel.numberOfColumn,
-      childAspectRatio: 1.0,
-      children: List.generate(PuyoViewModel.maxSquare, (index) {
-        return ChangeNotifierProvider.value(
-          value: puyoModel.puyoOfIndex(index),
-          child: const SquareView(),
-        );
-      }),
+    return Center(
+      child: SizedBox(
+        width: MediaQuery.of(context).size.height *
+            PuyoViewModel.numberOfColumn /
+            PuyoViewModel.numberOfRow,
+        child: GridView.count(
+          crossAxisCount: PuyoViewModel.numberOfColumn,
+          childAspectRatio: 1.0,
+          children: List.generate(PuyoViewModel.maxSquare, (index) {
+            return ChangeNotifierProvider.value(
+              value: puyoModel.puyoOfIndex(index),
+              child: const SquareView(),
+            );
+          }),
+        ),
+      ),
     );
   }
 }
