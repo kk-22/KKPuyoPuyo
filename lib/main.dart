@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kk_puyopuyo/view/main_field.dart';
+import 'package:kk_puyopuyo/view_model/puyo_view_model.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +18,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MainField(),
+      home: Provider(
+        create: (_) => PuyoViewModel(),
+        child: const MainField(),
+      ),
     );
   }
 }
