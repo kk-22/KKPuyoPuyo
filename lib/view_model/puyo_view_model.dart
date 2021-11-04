@@ -28,14 +28,14 @@ class PuyoViewModel {
   Puyo puyoOfIndex(int index) {
     final column = index % numberOfColumn;
     final row = index ~/ numberOfColumn;
-    return puyo(column, row);
+    return puyoOf(column, row);
   }
 
   Puyo puyoOfPoint(Point<int> point) {
-    return puyo(point.x, point.y);
+    return puyoOf(point.x, point.y);
   }
 
-  Puyo puyo(int column, int row) {
+  Puyo puyoOf(int column, int row) {
     return puyoTable[column][row];
   }
 
@@ -55,6 +55,9 @@ class PuyoViewModel {
     } else if (key == LogicalKeyboardKey.keyD) {
       next = MovingPuyo.moved(
           current, Point(current.mainPoint.x + 1, current.mainPoint.y));
+    } else if (key == LogicalKeyboardKey.keyS) {
+      _freeFallPuyo();
+      return;
     } else {
       return;
     }
@@ -77,9 +80,35 @@ class PuyoViewModel {
       final moving = _movingPuyos.first;
       puyoOfPoint(moving.mainPoint).type = PuyoType.none;
       puyoOfPoint(moving.subPoint).type = PuyoType.none;
-      _movingPuyos.replaceRange(0, 0, [next]);
+      _movingPuyos.removeAt(0);
+      _movingPuyos.insert(0, next);
     }
     puyoOfPoint(next.mainPoint).type = next.mainType;
     puyoOfPoint(next.subPoint).type = next.subType;
+  }
+
+  // 操作していたぷよを固定する
+  void _freeFallPuyo() {
+    for (var column = 0; column < numberOfColumn; column++) {
+      for (var row = numberOfRow - 1; 0 <= row; row--) {
+        final currentPuyo = puyoOf(column, row);
+        if (currentPuyo.type != PuyoType.none) continue;
+        var isAllNone = true;
+        for (var i = row - 1; 0 <= i; i--) {
+          final topPuyo = puyoOf(column, i);
+          if (topPuyo.type == PuyoType.none) continue;
+          currentPuyo.type = topPuyo.type;
+          topPuyo.type = PuyoType.none;
+          isAllNone = false;
+          break;
+        }
+        if (isAllNone) break;
+      }
+    }
+
+    // 次のぷよを作成
+    _movingPuyos.removeAt(0);
+    _movingPuyos.add(MovingPuyo());
+    _movePuyo(false, _movingPuyos.first);
   }
 }
