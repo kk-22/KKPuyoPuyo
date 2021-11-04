@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
             focusNode: focusNode,
             onKey: (event) {
               if (event is RawKeyDownEvent) {
-                puyoModel.controlMovingPuyo(event.logicalKey);
+                puyoModel.controlPuyo(event.logicalKey);
               }
             },
             child: const MainField(),

@@ -4,20 +4,20 @@ import 'package:kk_puyopuyo/model/puyo.dart';
 import 'package:kk_puyopuyo/view_model/puyo_view_model.dart';
 
 // 操作対象のぷよ
-class MovingPuyo {
+class ControlledPuyo {
   late final PuyoType _mainType; // 回転時に中心点となる方
   late final PuyoType _subType; // 回転時に大きく動く方
   late final Point<int> _mainPoint;
   late final SubPosition _subPosition;
 
-  MovingPuyo() {
+  ControlledPuyo() {
     _mainType = randomType();
     _subType = randomType();
     _mainPoint = const Point(PuyoViewModel.numberOfColumn ~/ 2 - 1, 1);
     _subPosition = SubPosition.top;
   }
 
-  MovingPuyo.moved(MovingPuyo old,
+  ControlledPuyo.moved(ControlledPuyo old,
       [Point<int>? nextPoint, SubPosition? nextPosition]) {
     _mainType = old.mainType;
     _subType = old.subType;

@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/src/services/keyboard_key.dart';
-import 'package:kk_puyopuyo/model/moving_puyo.dart';
+import 'package:kk_puyopuyo/model/controlled_puyo.dart';
 import 'package:kk_puyopuyo/model/puyo.dart';
 
 class PuyoViewModel {
@@ -18,11 +18,11 @@ class PuyoViewModel {
   );
 
   // 第1要素は現在操作中のぷよ。
-  final List<MovingPuyo> _movingPuyos = [];
+  final List<ControlledPuyo> _controlledPuyos = [];
 
   PuyoViewModel() {
     _clear();
-    _movePuyo(false, _movingPuyos.first);
+    _movePuyo(false, _controlledPuyos.first);
   }
 
   Puyo puyoOfIndex(int index) {
@@ -40,20 +40,20 @@ class PuyoViewModel {
   }
 
   void _clear() {
-    _movingPuyos.clear();
+    _controlledPuyos.clear();
     for (var i = 0; i < numberOfNext + 1; i++) {
-      _movingPuyos.add(MovingPuyo());
+      _controlledPuyos.add(ControlledPuyo());
     }
   }
 
-  void controlMovingPuyo(LogicalKeyboardKey key) {
-    final current = _movingPuyos.first;
-    final MovingPuyo next;
+  void controlPuyo(LogicalKeyboardKey key) {
+    final current = _controlledPuyos.first;
+    final ControlledPuyo next;
     if (key == LogicalKeyboardKey.keyA) {
-      next = MovingPuyo.moved(
+      next = ControlledPuyo.moved(
           current, Point(current.mainPoint.x - 1, current.mainPoint.y));
     } else if (key == LogicalKeyboardKey.keyD) {
-      next = MovingPuyo.moved(
+      next = ControlledPuyo.moved(
           current, Point(current.mainPoint.x + 1, current.mainPoint.y));
     } else if (key == LogicalKeyboardKey.keyS) {
       _freeFallPuyo();
@@ -68,20 +68,20 @@ class PuyoViewModel {
     }
   }
 
-  bool _canMovePuyoTo(MovingPuyo current, Point<int> point) {
+  bool _canMovePuyoTo(ControlledPuyo current, Point<int> point) {
     if (current.mainPoint == point || current.subPoint == point) return true;
     if (point.x < 0 || numberOfColumn <= point.x) return false;
     if (point.y < 0 || numberOfRow <= point.y) return false;
     return puyoOfPoint(point).type == PuyoType.none;
   }
 
-  void _movePuyo(bool isReplace, MovingPuyo next) {
+  void _movePuyo(bool isReplace, ControlledPuyo next) {
     if (isReplace) {
-      final moving = _movingPuyos.first;
-      puyoOfPoint(moving.mainPoint).type = PuyoType.none;
-      puyoOfPoint(moving.subPoint).type = PuyoType.none;
-      _movingPuyos.removeAt(0);
-      _movingPuyos.insert(0, next);
+      final controlled = _controlledPuyos.first;
+      puyoOfPoint(controlled.mainPoint).type = PuyoType.none;
+      puyoOfPoint(controlled.subPoint).type = PuyoType.none;
+      _controlledPuyos.removeAt(0);
+      _controlledPuyos.insert(0, next);
     }
     puyoOfPoint(next.mainPoint).type = next.mainType;
     puyoOfPoint(next.subPoint).type = next.subType;
@@ -107,8 +107,8 @@ class PuyoViewModel {
     }
 
     // 次のぷよを作成
-    _movingPuyos.removeAt(0);
-    _movingPuyos.add(MovingPuyo());
-    _movePuyo(false, _movingPuyos.first);
+    _controlledPuyos.removeAt(0);
+    _controlledPuyos.add(ControlledPuyo());
+    _movePuyo(false, _controlledPuyos.first);
   }
 }
